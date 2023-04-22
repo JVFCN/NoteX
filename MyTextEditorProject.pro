@@ -11,3 +11,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_NO_DEBUG_OUTPUT
+
+DISTFILES += \
+    QML_SettingUI.qml \
+    UIStetting.qml \
+    main.qml

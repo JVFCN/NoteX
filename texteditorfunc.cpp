@@ -6,7 +6,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <string>
-//#include <QDebug>
+
 TextEditorFunc::TextEditorFunc()
 {
 
