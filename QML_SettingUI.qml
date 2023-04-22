@@ -41,11 +41,11 @@ ApplicationWindow {
                     value: 12
                     to: 30
                     live: true
-                    snapMode: "SnapAlways"
+                    stepSize: 1
                 }
 
                 Text {
-                    text: qsTr(slider_fontSize.value)
+                    text: slider_fontSize.value
                 }
             }
         }

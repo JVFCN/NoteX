@@ -49,12 +49,12 @@ void TextEditorFunc::saveFile(const QString &FilePath, const QString &FileData)
     // 去除文件路径的"file:///"前缀
     path.remove(0, 8);
 
-    qDebug() << "file:" << path;
+//    qDebug() << "file:" << path;
     QFile file(path);
-    qDebug() << FileData;
+//    qDebug() << FileData;
     file.open(QIODevice::WriteOnly);
     file.write(FileData.toUtf8());
     file.close();
-    qDebug() << "OK_02";
+//    qDebug() << "OK_02";
 }
 

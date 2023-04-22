@@ -25,7 +25,7 @@ ApplicationWindow {
                         var component = Qt.createComponent("QML_SettingUI.qml")
                         var win = component.createObject()
                         win.closing.connect(function () {
-                            console.log('关闭')
+//                            console.log('关闭')
                             window_ExitOrShow = false
                         })
                         win.show()
@@ -41,10 +41,10 @@ ApplicationWindow {
         fileMode: FileDialog.SaveFile
 
         onAccepted: {
-            console.log("保存")
+//            console.log("保存")
         }
         onRejected: {
-            console.log("取消")
+//            console.log("取消")
         }
     }
 
@@ -98,12 +98,12 @@ ApplicationWindow {
         buttons: MessageDialog.Discard | MessageDialog.Save
 
         onDiscardClicked: {
-            console.log("丢弃")
+//            console.log("丢弃")
             Qt.quit()
         }
 
         onSaveClicked: {
-            console.log("保存")
+//            console.log("保存")
         }
     }
 
@@ -189,25 +189,25 @@ ApplicationWindow {
         id: fileDialog
         onAccepted: {
             filePath = fileDialog.file
-            console.log("File:", filePath)
+//            console.log("File:", filePath)
 
             textOpenFile.visible = false
             textOpenFolder.visible = false
             noteX_title.visible = false
             textAreaMain.visible = true
             slView_textArea.visible = true
-            //            toolbar_main.visible = true
+//            toolbar_main.visible = true
             menuBar_file.visible = true
 
             fileData = tdor.readFile(filePath)
-            console.log(fileData)
+//            console.log(fileData)
             fileName = tdor.getFileName(filePath)
-            console.log(fileName)
+//            console.log(fileName)
             main.title = "NoteX  " + fileName
             textAreaMain.text = fileData
         }
         onRejected: {
-            console.log("取消")
+//            console.log("取消")
             return
         }
     }
@@ -219,7 +219,7 @@ ApplicationWindow {
     FolderDialog {
         id: folderDialog
         onAccepted: {
-            console.log("Folder:", folderDialog.folder)
+//            console.log("Folder:", folderDialog.folder)
             textOpenFile.destroy()
             textOpenFolder.destroy()
             noteX_title.destroy()
@@ -227,7 +227,7 @@ ApplicationWindow {
             slView_textArea.visible = true
         }
         onRejected: {
-            console.log("取消")
+//            console.log("取消")
         }
     }
 
@@ -296,24 +296,26 @@ ApplicationWindow {
             focus: true
             visible: false
             font.pointSize: 12
+
             onTextChanged: {
                 main.title = "NoteX  " + fileName + "*"
-                if (autoSave.checked == true) {
+                if (autoSave.checked === true) {
                     tdor.saveFile(filePath, textAreaMain.text)
                     main.title = "NoteX" + fileName
                 }
             }
 
+
             Shortcut {
                 sequence: "Ctrl+S"
                 onActivated: {
                     if (main.title !== "NoteX") {
-                        console.log("CS")
                         saveOK.visible = true
                         if (saveFileAnimation.running === false && saveFileAnimation_opactiy.running === false ) {
                             saveFileAnimation.start()
                             saveOK.opacity = 1
                         }
+
                         tdor.saveFile(filePath, textAreaMain.text)
                         main.title = "NoteX  " + fileName
                     }
