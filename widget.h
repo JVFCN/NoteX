@@ -16,6 +16,8 @@
 #include <QMenu>
 #include <QPlainTextEdit>
 #include <QAction>
+#include <QShortcut>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
 QT_END_NAMESPACE
@@ -32,20 +34,17 @@ public:
     QLabel *label_Welcome;
     QPlainTextEdit *textEdit_plain_main;
 
-    //main MenuBar
-//    QMenuBar *menuBar_main;
-    //file Menu
-    QMenu *fileMenu;
-    //Action at File Menu
-    QAction *openFile;
 
-
+    QShortcut *shortcut_save;
 
     QString readFileData(QString FilePath);
+    bool saveFile(QString FilePath, QString FileData);
 
+public slots:
+    void saveFile_slot();
 private:
     Ui::Widget *ui;
-
+    QString fileName;
 protected:
     //将matlab窗口设置为随着窗口变化而变化
     virtual void resizeEvent(QResizeEvent *event) override;

@@ -10,15 +10,6 @@ Widget::Widget(QWidget *parent)
     textEdit_plain_main = new QPlainTextEdit(this);
     textEdit_plain_main->setVisible(false);
 
-
-//    fileMenu = menuBar_main->addMenu("File");
-//    menuBar_main = new QMenuBar(this);
-//    fileMenu = menuBar_main->addMenu("File");
-
-    openFile = new QAction("Open");
-    fileMenu->addAction(openFile);
-
-
     label_Welcome = new QLabel(tr("NoteX: 文本编辑解决方案"), this);
     label_Welcome->setStyleSheet("color:rgb(152, 152, 152);");
     label_Welcome->setFont(QFont("",30));
@@ -28,6 +19,10 @@ Widget::Widget(QWidget *parent)
     label_openFile->setStyleSheet("color:#94A7B0;");
     label_openFile->setFont(QFont("", 20));
     label_openFile->installEventFilter(this);
+
+    shortcut_save = new QShortcut(QKeySequence::Save, this);
+//    shortcut_save->setContext(Qt::);
+    connect(shortcut_save, &QShortcut::activated, this, saveFile_slot);
 }
 
 Widget::~Widget()
@@ -40,7 +35,6 @@ QString Widget::readFileData(QString FilePath)
     QFile file(FilePath);
     QString content;
 
-//    qDebug() << FilePath;
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "失败" << FilePath;
     }
@@ -53,6 +47,26 @@ QString Widget::readFileData(QString FilePath)
     }
     file.close();
     return content;
+}
+
+bool Widget::saveFile(QString FilePath, QString FileData)
+{
+    if (FilePath == NULL) {
+        qDebug() << "NO";
+        return false;
+    }
+    QFile file(FilePath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    file.write(FileData.toUtf8());
+    file.close();
+    qDebug() << "Save OK";
+    return true;
+}
+
+void Widget::saveFile_slot()
+{
+    qDebug() << "slot";
+    saveFile(fileName, textEdit_plain_main->toPlainText());
 }
 
 void Widget::resizeEvent(QResizeEvent *event)
@@ -70,7 +84,7 @@ bool Widget::eventFilter(QObject *obj, QEvent *event)
         if (qobject_cast<QLabel*>(obj)) {
             qDebug() << "点击";
 
-            QString fileName = QFileDialog::getOpenFileName(this, "打开文件", "C:" , "* (*)");
+            fileName = QFileDialog::getOpenFileName(this, "打开文件", "C:" , "* (*)");
             if (fileName == NULL) {
                 return false;
             }
@@ -82,6 +96,7 @@ bool Widget::eventFilter(QObject *obj, QEvent *event)
             textEdit_plain_main->setGeometry(0,0, this->width(), this->height());
             textEdit_plain_main->setPlainText(readFileData(fileName));
             textEdit_plain_main->setFont(QFont("", 12));
+
 //            qDebug() << textEdit_main->size() << "\n" << textEdit_main->isVisible();
 //            label_openFile->setVisible(false);
 //            label_Welcome->setVisible(false);
