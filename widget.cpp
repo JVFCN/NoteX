@@ -8,6 +8,8 @@ Widget::Widget(QWidget *parent)
 {
     ui->setupUi(this);
     textEdit_plain_main = new QPlainTextEdit(this);
+    textEdit_plain_main->setFont(QFont("", 12));
+    textEdit_plain_main->setStyleSheet("QScrollBar:vertical { width: 8px; background: rgba(0,0,0,0%); margin: 0px,0px,0px,0px; padding-top: 9px; padding-bottom: 9px; } QScrollBar::handle:vertical { width: 8px; background: rgba(0,0,0,25%); border-radius: 4px; min-height: 20; } QScrollBar::handle:vertical:hover { width: 8px; background: rgba(0,0,0,50%); border-radius: 4px; min-height: 20; }");
     textEdit_plain_main->setVisible(false);
 
     label_Welcome = new QLabel(tr("NoteX: 文本编辑解决方案"), this);
@@ -20,9 +22,17 @@ Widget::Widget(QWidget *parent)
     label_openFile->setFont(QFont("", 20));
     label_openFile->installEventFilter(this);
 
+    QSTI = new QSystemTrayIcon;
+    QSTI->setIcon(QIcon("qrc:/res/icon.ico"));
+    trayMenu->addAction(quitAction);
+    QSTI->setContextMenu(trayMenu);
+    QSTI->show();
+
     shortcut_save = new QShortcut(QKeySequence::Save, this);
-//    shortcut_save->setContext(Qt::);
     connect(shortcut_save, &QShortcut::activated, this, saveFile_slot);
+
+    shortcut_open = new QShortcut(QKeySequence::Open, this);
+    connect(shortcut_open, &QShortcut::activated, this, openFile);
 }
 
 Widget::~Widget()
@@ -63,6 +73,23 @@ bool Widget::saveFile(QString FilePath, QString FileData)
     return true;
 }
 
+bool Widget::openFile()
+{
+    fileName = QFileDialog::getOpenFileName(this, "打开文件", "", "* (*)");
+    if (fileName == NULL) {
+        return false;
+    }
+    if (textEdit_plain_main->isVisible() != true) {
+        textEdit_plain_main->setVisible(true);
+        if (label_openFile->isVisible() == true && label_Welcome->isVisible() == true) {
+            label_openFile->setVisible(false);
+            delete label_Welcome;
+        }
+    }
+    textEdit_plain_main->setPlainText(readFileData(fileName));
+    return true;
+}
+
 void Widget::saveFile_slot()
 {
     qDebug() << "slot";
@@ -95,15 +122,47 @@ bool Widget::eventFilter(QObject *obj, QEvent *event)
             textEdit_plain_main->setVisible(true);
             textEdit_plain_main->setGeometry(0,0, this->width(), this->height());
             textEdit_plain_main->setPlainText(readFileData(fileName));
-            textEdit_plain_main->setFont(QFont("", 12));
 
 //            qDebug() << textEdit_main->size() << "\n" << textEdit_main->isVisible();
 //            label_openFile->setVisible(false);
 //            label_Welcome->setVisible(false);
-            textEdit_plain_main->setStyleSheet("QScrollBar:vertical { width: 8px; background: rgba(0,0,0,0%); margin: 0px,0px,0px,0px; padding-top: 9px; padding-bottom: 9px; } QScrollBar::handle:vertical { width: 8px; background: rgba(0,0,0,25%); border-radius: 4px; min-height: 20; } QScrollBar::handle:vertical:hover { width: 8px; background: rgba(0,0,0,50%); border-radius: 4px; min-height: 20; }");
             return true;
         }
     }
-
     return false;
+}
+
+// 拖动进入事件
+void Widget::dragEnterEvent(QDragEnterEvent *event)
+{
+    if(event->mimeData()->hasUrls()) {event->acceptProposedAction();}
+    else {event->ignore();}
+}
+
+// 放下事件
+void Widget::dropEvent(QDropEvent *event)
+{
+    const QMimeData *m = event->mimeData();
+    // 如果数据中包含URL
+    if(m->hasUrls()){
+        // 获取URL列表
+        QList<QUrl> urlList = m->urls();
+        // 将其中第一个URL表示为本地文件路径
+        QString fileName_Drop = urlList.at(0).toLocalFile();
+        // 如果文件路径不为空
+        if(!fileName_Drop.isEmpty()){
+            //  转为char*
+            QByteArray qByteArrary = fileName_Drop.toLatin1();
+            char* filePath = qByteArrary.data();
+            qDebug() << filePath;
+            if (textEdit_plain_main->isVisible() != true) {
+                textEdit_plain_main->setVisible(true);
+                if (label_openFile->isVisible() == true && label_Welcome->isVisible() == true) {
+                    label_openFile->setVisible(false);
+                    delete label_Welcome;
+                }
+            }
+            textEdit_plain_main->setPlainText(readFileData(fileName_Drop));
+        }
+    }
 }

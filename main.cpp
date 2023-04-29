@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon("://res/icon.ico"));
     Widget w;
     w.setStyleSheet("background-color:#FAFAFA;");
+    w.setAcceptDrops(true);
     w.show();
     return a.exec();
 }
