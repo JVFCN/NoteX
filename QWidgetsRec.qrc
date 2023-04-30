@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>res/File.png</file>
-        <file>res/icon.png</file>
-        <file>res/icon.ico</file>
-    </qresource>
-</RCC>
