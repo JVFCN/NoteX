@@ -13,7 +13,8 @@ SOURCES += \
     widget.cpp
 
 HEADERS += \
-    widget.h
+    widget.h \
+    json.hpp
 
 FORMS += \
     widget.ui

@@ -2,6 +2,11 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
+#include "json.hpp"
+
+#include <vector>
+#include <fstream>
+
 #include <QDebug>
 #include <QWidget>
 #include <QLabel>
@@ -23,14 +28,11 @@
 #include <QMimeData>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <vector>
-#include <fstream>
 #include <QPushButton>
 #include <QCloseEvent>
+#include <QTextCursor>
 
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkRequest>
-#include <QtNetwork/QNetworkReply>
+using json = nlohmann::json;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -42,6 +44,8 @@ class Widget : public QWidget
     Q_OBJECT
 public: // Setting QWidgets
     QLabel *settingLabel;
+    QVBoxLayout *qVBlayout_setting;
+    QPushButton *btn_checkUpdates;
 
 public: // Main QWidgets
     Widget(QWidget *parent = nullptr);
@@ -51,10 +55,12 @@ public: // Main QWidgets
     QPlainTextEdit *textEdit_plain_main;
     QLabel *label_FileSize;
     QPushButton *setting_btn;
+//    QLabel *label_line_number;
+//    QLabel *label_column_number;
 
     QWidget *setting_widget;
 
-    QVBoxLayout *layout;
+    QHBoxLayout *layout;
 
     QSystemTrayIcon *QSTI;
     QMenu* trayMenu = new QMenu;
@@ -65,6 +71,7 @@ public: // Main QWidgets
 
     QString readFileData(QString FilePath);
     QString getFileSize(QString FilePath);
+    QString readJsonFile(const QString FilePath, const QString key);
     bool saveFile(QString FilePath, QString FileData);
     bool openFile();
 
@@ -74,11 +81,17 @@ public: // Main QWidgets
 public slots:
     void saveFile_slot();
     void setting_buttton_clicked();
+    void setting_closed();
+//    void line_number_show();
 
 private:
     Ui::Widget *ui;
     QString fileName;
     bool settingOpened = false;
+    std::string const jsonURL = "https://raw.githubusercontent.com/JVFCN/NoteX.io/main/OnlineUpdata/UpdataInfo.json";
+    std::string configPath = __argv[0];
+    std::string curlPath = __argv[0];
+//    QTextCursor plainTextCursor;
 
 protected:
     //将matlab窗口设置为随着窗口变化而变化
@@ -91,5 +104,9 @@ protected:
     // 放下事件
     void dropEvent(QDropEvent *event);
 };
+class setting : public QWidget
+{
+public:
 
+};
 #endif // WIDGET_H

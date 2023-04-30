@@ -12,6 +12,13 @@ Widget::Widget(QWidget *parent)
     textEdit_plain_main->setStyleSheet("QScrollBar:vertical { width: 8px; background: rgba(0,0,0,0%); margin: 0px,0px,0px,0px; padding-top: 9px; padding-bottom: 9px; } QScrollBar::handle:vertical { width: 8px; background: rgba(0,0,0,25%); border-radius: 4px; min-height: 20; } QScrollBar::handle:vertical:hover { width: 8px; background: rgba(0,0,0,50%); border-radius: 4px; min-height: 20; }");
     textEdit_plain_main->setVisible(false);
 
+//    plainTextCursor = textEdit_plain_main->textCursor();
+//    label_line_number = new QLabel("列:", this);
+//    label_line_number->setFont(QFont("", 11));
+
+//    label_column_number = new QLabel("行:", this);
+//    label_column_number->setFont(QFont("", 11));
+
     label_FileSize = new QLabel(getFileSize(fileName) ,this);
     label_FileSize->setFont(QFont("", 12));
     label_FileSize->setStyleSheet("background-color: rgba(0,0,0,0)");
@@ -20,9 +27,12 @@ Widget::Widget(QWidget *parent)
     setting_btn->setStyleSheet("QPushButton {background-color: #ffffff; border: 1px solid #dcdfe6; padding: 10px; border-radius: 5px;}QPushButton:hover {background-color: #ecf5ff; color: #409eff;}QPushButton:pressed, QPushButton:checked {border: 1px solid #3a8ee6; color: #409eff;}#button3 {border-radius: 20px;}");
     connect(setting_btn, &QPushButton::clicked, this, setting_buttton_clicked);
 
-    layout = new QVBoxLayout;
+    layout = new QHBoxLayout;
     layout->addWidget(label_FileSize, 0, Qt::AlignLeft | Qt::AlignBottom);
     layout->addWidget(setting_btn, 0, Qt::AlignRight | Qt::AlignBottom);
+    layout->setContentsMargins(0, 10, 0, 0);
+//    layout->addWidget(label_line_number);
+//    layout->addWidget(label_column_number);
     this->setLayout(layout);
 
     label_Welcome = new QLabel(tr("NoteX: 文本编辑解决方案"), this);
@@ -46,6 +56,8 @@ Widget::Widget(QWidget *parent)
 
     shortcut_open = new QShortcut(QKeySequence::Open, this);
     connect(shortcut_open, &QShortcut::activated, this, openFile);
+
+//    connect(textEdit_plain_main, &QPlainTextEdit::cursorPositionChanged, this, line_number_show);
 }
 
 Widget::~Widget()
@@ -94,6 +106,30 @@ QString Widget::getFileSize(QString FilePath)
     }
 }
 
+QString Widget::readJsonFile(const QString FilePath, const QString key)
+{
+    qDebug() << QString::fromStdString(configPath);
+    std::string filePath_stdString = FilePath.toStdString();
+    std::string key_stdString = key.toStdString();
+    std::string json_file_content;
+
+    std::ifstream file(filePath_stdString);
+    if (file) {
+        file.seekg(0, std::ios::end);
+        json_file_content.reserve(file.tellg());
+        file.seekg(0, std::ios::beg);
+
+        json_file_content.assign((std::istreambuf_iterator<char>(file)),
+                   std::istreambuf_iterator<char>());
+    }
+
+    // 解析JSON对象
+    json j_ = json::parse(json_file_content);
+    std::string version = j_["version"];
+    qDebug() << QString::fromStdString(version);
+    return QString::fromStdString(version);
+}
+
 bool Widget::saveFile(QString FilePath, QString FileData)
 {
     if (FilePath == NULL) {
@@ -128,17 +164,18 @@ bool Widget::openFile()
 
 bool Widget::onlineDetectionUpdate()
 {
-    QNetworkAccessManager* manager = new QNetworkAccessManager();
-    QNetworkReply* reply = manager->get(QNetworkRequest(QUrl("https://github.com/JVFCN/NoteX.io/blob/main/OnlineUpdata/UpdataInfo.json")));
+    qDebug() << "检查";
+    curlPath = curlPath.substr(0, curlPath.find_last_of('\\') + 1);
+    curlPath = curlPath + "bin\\curl.exe";
 
-    QObject::connect(reply, &QNetworkReply::finished, [=]() {
-        if (reply->error() != QNetworkReply::NoError) {
-            return false;
-        }
-
-        QByteArray jsonData = reply->readAll();
-        qDebug() << jsonData;
-    });
+    configPath = configPath.substr(0, configPath.find_last_of('\\') + 1);
+    configPath = configPath + "config\\upgrade.json";
+//    qDebug() << QString::fromStdString(configPath);
+    std::string command =  curlPath + " -k -o " + configPath + jsonURL;
+    system(command.c_str());
+    qDebug() << QString::fromStdString(command.c_str());
+    readJsonFile(QString::fromStdString(configPath), "");
+    return true;
 }
 
 int Widget::compareVersion(QString VersionCode_1, QString VersionCode_2)
@@ -180,16 +217,39 @@ void Widget::saveFile_slot()
 
 void Widget::setting_buttton_clicked()
 {
-    settingOpened = true;
     qDebug() << "Clicked";
-    setting_widget = new QWidget();
-    setting_widget->setWindowTitle("Setting");
-    setting_widget->setGeometry(500,500,1000,700);
+    if (settingOpened == true) {
+        qDebug() << "打开过了";
+    } else {
+        settingOpened = true;
 
-    settingLabel = new QLabel("hello", setting_widget);
+        setting_widget = new QWidget();
+        setting_widget->setWindowTitle("Setting");
+        setting_widget->setGeometry(500,500,1000,700);
+        // TODO
+        btn_checkUpdates = new QPushButton("检查更新");
+        connect(btn_checkUpdates, &QPushButton::clicked, this, onlineDetectionUpdate);
+        btn_checkUpdates->setStyleSheet("QPushButton {background-color: #ffffff; border: 1px solid #dcdfe6; padding: 10px; border-radius: 5px;}QPushButton:hover {background-color: #ecf5ff; color: #409eff;}QPushButton:pressed, QPushButton:checked {border: 1px solid #3a8ee6; color: #409eff;}#button3 {border-radius: 20px;}");
 
-    setting_widget->show();
+        qVBlayout_setting = new QVBoxLayout;
+        qVBlayout_setting->addWidget(btn_checkUpdates, Qt::AlignCenter | Qt::AlignBottom);
+
+        setting_widget->show();
+        setting_widget->setLayout(qVBlayout_setting);
+    }
 }
+
+void Widget::setting_closed()
+{
+    settingOpened = false;
+}
+
+//void Widget::line_number_show()
+//{
+//    qDebug() << "行:" << plainTextCursor.positionInBlock() << "     列:" << plainTextCursor.blockNumber();
+////    label_line_number->setText("列:" + QString::number(plainTextCursor.blockNumber()));
+////    label_column_number->setText("行:" + QString::number(plainTextCursor.positionInBlock()));
+//}
 
 void Widget::resizeEvent(QResizeEvent *event)
 {
@@ -197,7 +257,7 @@ void Widget::resizeEvent(QResizeEvent *event)
     if (label_openFile->parent() != NULL) {
         label_openFile->setGeometry(this->width() / 2 - 70, this->height() / 2, 150, 100);
     }
-    textEdit_plain_main->setGeometry(0,0, this->width(), this->height() - 45);
+    textEdit_plain_main->setGeometry(0,0, this->width(), this->height() - 37);
 }
 
 bool Widget::eventFilter(QObject *obj, QEvent *event)
